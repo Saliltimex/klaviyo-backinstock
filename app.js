@@ -6,7 +6,7 @@ import cors from "cors";
 const app = express();
 app.use(express.json());
 
-app.use(cors({ origin: "https://timex-us-test.myshopify.com/" }));
+app.use(cors({ origin: "https://timex-us-test.myshopify.com" }));
 
 const PORT = process.env.PORT || 3000;
 
