@@ -1,7 +1,14 @@
+import express from "express";
 import fetch from "node-fetch";
 
-export async function sendBisEvent(email, productId, variantId, title) {
-  const apiKey = process.env.KLAVIYO_PRIVATE_API_KEY; // store in env vars
+const app = express();
+app.use(express.json());
+
+const PORT = process.env.PORT || 3000;
+
+// ✅ Reusable function to send BIS event to Klaviyo
+async function sendBisEvent(email, productId, variantId, title) {
+  const apiKey = process.env.KLAVIYO_PRIVATE_API_KEY; // must be set in your env
 
   const payload = {
     data: {
@@ -11,14 +18,14 @@ export async function sendBisEvent(email, productId, variantId, title) {
         properties: {
           product_id: productId,
           variant_id: variantId,
-          title: title
+          title: title,
         },
         profile: {
-          email: email
+          email: email,
         },
-        time: new Date().toISOString()
-      }
-    }
+        time: new Date().toISOString(),
+      },
+    },
   };
 
   const res = await fetch("https://a.klaviyo.com/api/events/", {
@@ -26,9 +33,9 @@ export async function sendBisEvent(email, productId, variantId, title) {
     headers: {
       "Content-Type": "application/json",
       "Authorization": `Klaviyo-API-Key ${apiKey}`,
-      "Revision": "2023-07-15"
+      "Revision": "2023-07-15",
     },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
   });
 
   if (!res.ok) {
@@ -38,3 +45,24 @@ export async function sendBisEvent(email, productId, variantId, title) {
 
   return await res.json();
 }
+
+// ✅ API endpoint for frontend
+app.post("/api/bis-request", async (req, res) => {
+  try {
+    const { email, productId, variantId, title } = req.body;
+
+    if (!email || !productId || !variantId) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    const result = await sendBisEvent(email, productId, variantId, title);
+    res.json({ success: true, result });
+  } catch (err) {
+    console.error("❌ BIS request failed:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
+});
