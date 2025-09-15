@@ -44,22 +44,25 @@ async function sendBisEvent(email, productId, variantId, title) {
     }
   };
 
-  const res = await fetch("https://a.klaviyo.com/api/events/", {
+ const res = await fetch("https://a.klaviyo.com/api/events/", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": `Klaviyo-API-Key ${apiKey}`,
-      "Revision": "2023-07-15",
+      Authorization: `Klaviyo-API-Key ${apiKey}`,
+      Revision: "2023-07-15",
     },
     body: JSON.stringify(payload),
   });
 
+  const responseText = await res.text(); // read raw
+  console.log("📡 Klaviyo response:", res.status, res.statusText, responseText);
+
   if (!res.ok) {
-    const error = await res.text();
-    throw new Error(`Klaviyo error: ${res.status} ${error}`);
+    throw new Error(`Klaviyo error: ${res.status} ${responseText}`);
   }
 
-  return await res.json();
+  // Parse only if JSON returned
+  return responseText ? JSON.parse(responseText) : { success: true };
 }
 
 // ✅ API endpoint for frontend
