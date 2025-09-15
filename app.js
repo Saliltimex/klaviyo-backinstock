@@ -14,22 +14,34 @@ const PORT = process.env.PORT || 3000;
 async function sendBisEvent(email, productId, variantId, title) {
   const apiKey = process.env.KLAVIYO_PRIVATE_API_KEY; // must be set in your env
 
-  const payload = {
+    const payload = {
     data: {
       type: "event",
       attributes: {
-        metric: { name: "Back In Stock Request" },
+        metric: {
+          data: {
+            type: "metric",
+            attributes: {
+              name: "Back In Stock Request"
+            }
+          }
+        },
         properties: {
           product_id: productId,
           variant_id: variantId,
-          title: title,
+          title: title
         },
         profile: {
-          email: email,
+          data: {
+            type: "profile",
+            attributes: {
+              email: email
+            }
+          }
         },
-        time: new Date().toISOString(),
-      },
-    },
+        time: new Date().toISOString()
+      }
+    }
   };
 
   const res = await fetch("https://a.klaviyo.com/api/events/", {
